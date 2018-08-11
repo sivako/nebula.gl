@@ -4,7 +4,7 @@ import DeckGL from 'deck.gl';
 import PropTypes from 'prop-types';
 
 import type { Viewport } from '../types';
-import Nebula from './nebula';
+import Nebula from '../lib/nebula';
 
 type Props = {
   layers: Object[],
@@ -36,7 +36,10 @@ export default class NebulaReact extends Component<Props> {
 
   getChildContext() {
     const { nebula } = this;
-    const { props: { viewport }, wmViewport } = nebula;
+    const {
+      props: { viewport },
+      wmViewport
+    } = nebula;
     return { viewport, wmViewport, nebula };
   }
 
