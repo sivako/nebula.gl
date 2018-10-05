@@ -8,6 +8,7 @@ import type { Feature, Position } from '../../geojson-types.js';
 import EditableLayer from './editable-layer.js';
 import type {
   ClickEvent,
+  PointerDownEvent,
   PointerMoveEvent,
   StartDraggingEvent,
   StopDraggingEvent
@@ -155,7 +156,8 @@ export default class EditableGeoJsonLayer extends EditableLayer {
         features: []
       }),
       selectedFeatures: [],
-      editHandles: []
+      editHandles: [],
+      tempFeature: null
     });
   }
 
@@ -376,6 +378,12 @@ export default class EditableGeoJsonLayer extends EditableLayer {
     }
   }
 
+  onPointerDown({ groundCoords, picks, sourceEvent }: PointerDownEvent) {
+    if (this.props.mode === 'translate') {
+      this.setState({ tempFeature: this.state.selectedFeatures[0] });
+    }
+  }
+
   onPointerMove({
     groundCoords,
     picks,
@@ -386,12 +394,14 @@ export default class EditableGeoJsonLayer extends EditableLayer {
   }: PointerMoveEvent) {
     this.setState({ pointerMovePicks: picks });
 
+    const { tempFeature } = this.state;
     const { editAction, cancelMapPan } = this.state.editableFeatureCollection.onPointerMove(
       groundCoords,
       picks,
       isDragging,
       dragStartPicks,
-      dragStartGroundCoords
+      dragStartGroundCoords,
+      tempFeature
     );
     this.updateTentativeFeature();
     this.updateEditHandles(picks, groundCoords);

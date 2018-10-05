@@ -49,6 +49,13 @@ export type PointerMoveEvent = {
   sourceEvent: any
 };
 
+export type PointerDownEvent = {
+  screenCoords: Position,
+  groundCoords: Position,
+  picks: DeckGLPick[],
+  sourceEvent: any
+};
+
 export default class EditableLayer extends CompositeLayer {
   // Overridable interaction event handlers
   onClick(event: ClickEvent) {
@@ -68,6 +75,10 @@ export default class EditableLayer extends CompositeLayer {
   }
 
   onPointerMove(event: PointerMoveEvent) {
+    // default implementation - do nothing
+  }
+
+  onPointerDown(event: PointerDownEvent) {
     // default implementation - do nothing
   }
 
@@ -177,6 +188,13 @@ export default class EditableLayer extends CompositeLayer {
         pointerDownPicks: picks,
         isDragging: false
       }
+    });
+
+    this.onPointerDown({
+      screenCoords,
+      groundCoords,
+      picks,
+      sourceEvent: event
     });
   }
 
