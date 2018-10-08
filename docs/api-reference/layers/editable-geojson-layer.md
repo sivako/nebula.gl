@@ -69,6 +69,8 @@ The `mode` property dictates what type of edits the user can perform and how to 
 
 * `modify`: user can move existing points, add intermediate points along lines, and remove points.
 
+* `translate`: user can move any selected feature by dragging (mouse click + hold and move).
+
 * `drawPoint`: user can draw a new `Point` feature by clicking where the point is to be.
 
 * `drawLineString`: user can draw a new `LineString` feature by clicking positions to add.

@@ -8,6 +8,7 @@ import ellipse from '@turf/ellipse';
 import destination from '@turf/destination';
 import bearing from '@turf/bearing';
 import turfTransformRotate from '@turf/transform-rotate';
+import turfTransformTranslate from '@turf/transform-translate';
 import pointToLineDistance from '@turf/point-to-line-distance';
 import { point, lineString as toLineString } from '@turf/helpers';
 
@@ -47,6 +48,7 @@ export class EditableFeatureCollection {
   _selectedFeatureIndexes: number[] = [];
   _drawAtFront: boolean = false;
   _clickSequence: Position[] = [];
+  _tempFeature: any = null;
 
   constructor(featureCollection: FeatureCollection) {
     this.setFeatureCollection(featureCollection);
@@ -82,6 +84,15 @@ export class EditableFeatureCollection {
     }
 
     this._modeConfig = modeConfig;
+    this._setTentativeFeature(null);
+  }
+
+  setTempFeature(tempFeature: any): void {
+    if (this._tempFeature === tempFeature) {
+      return;
+    }
+    console.log('setting temp feature');
+    this._tempFeature = tempFeature;
     this._setTentativeFeature(null);
   }
 
@@ -404,7 +415,7 @@ export class EditableFeatureCollection {
     const selectedFeatureIndexes = this._selectedFeatureIndexes;
 
     // Cancel map panning if pointer went down on an edit handle
-    const cancelMapPan: boolean = Boolean(editHandle);
+    let cancelMapPan: boolean = Boolean(editHandle);
 
     if (isDragging && selectedFeatureIndexes.length && editHandle) {
       editAction = this._handleMovePosition(groundCoords, editHandle);
@@ -414,6 +425,9 @@ export class EditableFeatureCollection {
       this._modeConfig.action === 'transformRotate'
     ) {
       editAction = this._handleTransformRotate(picks, groundCoords);
+    } else if (this._mode === 'translate' && isDragging) {
+      editAction = this._handleTransformTranslate(groundCoords, dragStartGroundCoords);
+      cancelMapPan = true;
     } else if (this._mode === 'drawLineString') {
       this._handlePointerMoveForDrawLineString(groundCoords);
     } else if (this._mode === 'drawPolygon') {
@@ -473,6 +487,38 @@ export class EditableFeatureCollection {
 
     const updatedData = this.featureCollection
       .replaceGeometry(featureIndex, rotatedFeature)
+      .getObject();
+
+    return {
+      updatedData,
+      editType: 'transformPosition',
+      featureIndex,
+      positionIndexes: null,
+      position: null
+    };
+  }
+
+  _handleTransformTranslate(groundCoords: Position, dragStartGroundCoords: ?Position): ?EditAction {
+    if (!this._tempFeature) {
+      return null;
+    }
+    let distanceMoved;
+    let direction;
+    const selectedFeatureIndexes = this._selectedFeatureIndexes;
+    if (dragStartGroundCoords) {
+      const p1 = point(dragStartGroundCoords);
+      const p2 = point(groundCoords);
+      distanceMoved = distance(p1, p2);
+      direction = bearing(p1, p2);
+    }
+    if (!distanceMoved || !direction) {
+      return null;
+    }
+    const featureIndex = selectedFeatureIndexes[0];
+    const feature = this._tempFeature.feature;
+    const movedFeature = turfTransformTranslate(feature, distanceMoved, direction);
+    const updatedData = this.featureCollection
+      .replaceGeometry(featureIndex, movedFeature.geometry)
       .getObject();
 
     return {

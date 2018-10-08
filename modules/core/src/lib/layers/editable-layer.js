@@ -56,6 +56,12 @@ export type PointerDownEvent = {
   sourceEvent: any
 };
 
+export type PointerUpEvent = {
+  screenCoords: Position,
+  groundCoords: Position,
+  sourceEvent: any
+};
+
 export default class EditableLayer extends CompositeLayer {
   // Overridable interaction event handlers
   onClick(event: ClickEvent) {
@@ -79,6 +85,10 @@ export default class EditableLayer extends CompositeLayer {
   }
 
   onPointerDown(event: PointerDownEvent) {
+    // default implementation - do nothing
+  }
+
+  onPointerUp(event: PointerUpEvent) {
     // default implementation - do nothing
   }
 
@@ -241,7 +251,7 @@ export default class EditableLayer extends CompositeLayer {
       y: screenCoords[1],
       mode: 'query',
       layers: [this.props.id],
-      radius: 10,
+      radius: 1000,
       viewports: [this.context.viewport],
       depth: 2
     });
@@ -298,6 +308,12 @@ export default class EditableLayer extends CompositeLayer {
         pointerDownPicks: null,
         isDragging: false
       }
+    });
+
+    this.onPointerUp({
+      screenCoords,
+      groundCoords,
+      sourceEvent: event
     });
   }
 

@@ -9,6 +9,7 @@ import EditableLayer from './editable-layer.js';
 import type {
   ClickEvent,
   PointerDownEvent,
+  PointerUpEvent,
   PointerMoveEvent,
   StartDraggingEvent,
   StopDraggingEvent
@@ -156,8 +157,7 @@ export default class EditableGeoJsonLayer extends EditableLayer {
         features: []
       }),
       selectedFeatures: [],
-      editHandles: [],
-      tempFeature: null
+      editHandles: []
     });
   }
 
@@ -231,7 +231,7 @@ export default class EditableGeoJsonLayer extends EditableLayer {
   }
 
   createEditHandleLayers() {
-    if (!this.state.editHandles.length) {
+    if (!this.state.editHandles.length || this.props.mode === 'translate') {
       return [];
     }
 
@@ -329,6 +329,9 @@ export default class EditableGeoJsonLayer extends EditableLayer {
   }
 
   updateEditHandles(picks?: Array<Object>, groundCoords?: Position) {
+    if (this.props.mode === 'translate') {
+      return;
+    }
     const editHandles = this.state.editableFeatureCollection.getEditHandles(picks, groundCoords);
     if (editHandles !== this.state.editHandles) {
       this.setState({ editHandles });
@@ -379,8 +382,18 @@ export default class EditableGeoJsonLayer extends EditableLayer {
   }
 
   onPointerDown({ groundCoords, picks, sourceEvent }: PointerDownEvent) {
+    console.log('on pointer down');
     if (this.props.mode === 'translate') {
-      this.setState({ tempFeature: this.state.selectedFeatures[0] });
+      const editableFeatureCollection = this.state.editableFeatureCollection;
+      editableFeatureCollection.setTempFeature({ feature: this.state.selectedFeatures[0], picks });
+    }
+  }
+
+  onPointerUp({ groundCoords, sourceEvent }: PointerUpEvent) {
+    console.log('on pointer up');
+    if (this.props.mode === 'translate') {
+      const editableFeatureCollection = this.state.editableFeatureCollection;
+      editableFeatureCollection.setTempFeature(null);
     }
   }
 
@@ -394,14 +407,12 @@ export default class EditableGeoJsonLayer extends EditableLayer {
   }: PointerMoveEvent) {
     this.setState({ pointerMovePicks: picks });
 
-    const { tempFeature } = this.state;
     const { editAction, cancelMapPan } = this.state.editableFeatureCollection.onPointerMove(
       groundCoords,
       picks,
       isDragging,
       dragStartPicks,
-      dragStartGroundCoords,
-      tempFeature
+      dragStartGroundCoords
     );
     this.updateTentativeFeature();
     this.updateEditHandles(picks, groundCoords);
