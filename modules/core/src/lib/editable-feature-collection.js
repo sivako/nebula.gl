@@ -48,7 +48,7 @@ export class EditableFeatureCollection {
   _selectedFeatureIndexes: number[] = [];
   _drawAtFront: boolean = false;
   _clickSequence: Position[] = [];
-  _tempFeature: any = null;
+  _tempFeature: ?Feature;
 
   constructor(featureCollection: FeatureCollection) {
     this.setFeatureCollection(featureCollection);
@@ -91,9 +91,7 @@ export class EditableFeatureCollection {
     if (this._tempFeature === tempFeature) {
       return;
     }
-    console.log('setting temp feature');
     this._tempFeature = tempFeature;
-    this._setTentativeFeature(null);
   }
 
   setSelectedFeatureIndexes(indexes: number[]): void {
@@ -515,7 +513,7 @@ export class EditableFeatureCollection {
       return null;
     }
     const featureIndex = selectedFeatureIndexes[0];
-    const feature = this._tempFeature.feature;
+    const feature = this._tempFeature;
     const movedFeature = turfTransformTranslate(feature, distanceMoved, direction);
     const updatedData = this.featureCollection
       .replaceGeometry(featureIndex, movedFeature.geometry)
@@ -523,7 +521,7 @@ export class EditableFeatureCollection {
 
     return {
       updatedData,
-      editType: 'transformPosition',
+      editType: 'transformTranslate',
       featureIndex,
       positionIndexes: null,
       position: null

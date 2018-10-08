@@ -251,7 +251,7 @@ export default class EditableLayer extends CompositeLayer {
       y: screenCoords[1],
       mode: 'query',
       layers: [this.props.id],
-      radius: 1000,
+      radius: 10,
       viewports: [this.context.viewport],
       depth: 2
     });
