@@ -48,7 +48,7 @@ export class EditableFeatureCollection {
   _selectedFeatureIndexes: number[] = [];
   _drawAtFront: boolean = false;
   _clickSequence: Position[] = [];
-  _tempFeature: ?Feature;
+  _tempFeature: any = null;
 
   constructor(featureCollection: FeatureCollection) {
     this.setFeatureCollection(featureCollection);
@@ -500,9 +500,9 @@ export class EditableFeatureCollection {
     if (!this._tempFeature) {
       return null;
     }
+    console.log('tempFeature', this._tempFeature);
     let distanceMoved;
     let direction;
-    const selectedFeatureIndexes = this._selectedFeatureIndexes;
     if (dragStartGroundCoords) {
       const p1 = point(dragStartGroundCoords);
       const p2 = point(groundCoords);
@@ -512,17 +512,16 @@ export class EditableFeatureCollection {
     if (!distanceMoved || !direction) {
       return null;
     }
-    const featureIndex = selectedFeatureIndexes[0];
-    const feature = this._tempFeature;
+    const { feature, pickedIndex } = this._tempFeature;
     const movedFeature = turfTransformTranslate(feature, distanceMoved, direction);
     const updatedData = this.featureCollection
-      .replaceGeometry(featureIndex, movedFeature.geometry)
+      .replaceGeometry(pickedIndex, movedFeature.geometry)
       .getObject();
 
     return {
       updatedData,
       editType: 'transformTranslate',
-      featureIndex,
+      featureIndex: pickedIndex,
       positionIndexes: null,
       position: null
     };

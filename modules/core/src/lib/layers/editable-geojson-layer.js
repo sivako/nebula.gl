@@ -384,9 +384,13 @@ export default class EditableGeoJsonLayer extends EditableLayer {
   onPointerDown({ groundCoords, picks, sourceEvent }: PointerDownEvent) {
     const { mode, selectedFeatureIndexes } = this.props;
     // Check if user is start drag in selected feature
-    if (mode === 'translate' && picks.length && picks[0].index === selectedFeatureIndexes[0]) {
+    if (mode === 'translate' && picks.length && selectedFeatureIndexes.includes(picks[0].index)) {
       const editableFeatureCollection = this.state.editableFeatureCollection;
-      editableFeatureCollection.setTempFeature(this.state.selectedFeatures[0]);
+      const pickedIndex = picks[0].index;
+      editableFeatureCollection.setTempFeature({
+        feature: this.state.selectedFeatures[selectedFeatureIndexes.indexOf(pickedIndex)],
+        pickedIndex
+      });
     }
   }
 
